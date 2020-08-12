@@ -1,11 +1,15 @@
 @echo off
-D:\User\wget.exe --no-check-certificate -O d:\User\grid_desk\fetched_data\exchange-rates.txt "https://api.exchangeratesapi.io/api/latest?base=HUF&symbols=EUR,USD,GBP"
 
 setlocal
-set srcfile=d:\User\grid_desk\fetched_data\exchange-rates.txt
-set destfile=d:\User\grid_desk\fetched_data\exchange-rates-actual.txt
-set logfile=d:\User\grid_desk\fetched_data\exchange-rates.log
+set repo_folder="d:\User\grid_desk"
+
+set srcfile=%repo_folder%\fetched_data\exchange-rates.txt
+set destfile=%repo_folder%\fetched_data\exchange-rates-actual.txt
+set logfile=%repo_folder%\fetched_data\exchange-rates.log
+
 set minbytesize=50
+
+D:\User\wget.exe --no-check-certificate -O %srcfile% "https://api.exchangeratesapi.io/api/latest?base=HUF&symbols=EUR,USD,GBP"
 
 time /t>>%logfile%
 
