@@ -3,7 +3,7 @@ Samurize and Vanilla JS-Based Desktop Enhancements (e.g. Widgets) for Windows
 
 ## Screenshot
 
-![](https://raw.githubusercontent.com/iamgrid/grid_desk/master/grid_desk_screenie.jpg).
+![](https://raw.githubusercontent.com/iamgrid/grid_desk/master/grid_desk_screenie.jpg)
 
 ## Links
 
