@@ -13,7 +13,7 @@ var calrange = 82; // 1920
 // geoloc and UTC offset is required to calculate sunrise/sunset time
 var latitude = 46.6220;
 var longitude = -18.8559;
-var utc_correction = 2;
+var utc_correction = 1;
 
 
 /////////////////
