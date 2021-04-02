@@ -13,7 +13,7 @@ var calrange = 82; // 1920
 // geoloc and UTC offset is required to calculate sunrise/sunset time
 var latitude = 46.6220;
 var longitude = -18.8559;
-var utc_correction = 1;
+var utc_correction = 2;
 
 
 /////////////////
@@ -283,11 +283,17 @@ function exchangeRates(req) {
 
 	if (req !== "details") {
 		var symbols = {	"EUR": "€", "GBP": "£", "USD": "$" };
+
+		var uSDInHUF = xRData.quotes["USDHUF"];
+		var responseValue = uSDInHUF;
+		if (req !== "USD") {
+			responseValue = responseValue * (1 / xRData.quotes["USD"+req]);
+		}
 		
-		re.push(symbols[req] + ": " + Math.round(1 / Number(xRData.rates[req])));
+		re.push(symbols[req] + ": " + Math.round(responseValue));
 	} else {
-		var dobj = toDateObject(xRData.date);
-		re.push("Base currency: " + xRData.base + "\nJSON date: " + dateDifference(dobj, "default"));
+		var dobj = new Date(xRData.timestamp * 1000);
+		re.push("Base currency: HUF\nJSON date: " + MONTHS[dobj.getMonth()] + " " + dobj.getDate() + ", " + dobj.getFullYear());
 	}
 
 	return re.join("");

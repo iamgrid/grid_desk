@@ -1,2 +1,3 @@
 /fetched_data/*
 /wget_fetchers/open-weather-map-token.txt
+/wget_fetchers/currency-layer-token.txt

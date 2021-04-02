@@ -2,6 +2,7 @@
 
 setlocal
 set repo_folder="d:\User\grid_desk"
+set /p currencylayertoken=<%repo_folder%\wget_fetchers\currency-layer-token.txt
 
 set srcfile=%repo_folder%\fetched_data\exchange-rates.txt
 set destfile=%repo_folder%\fetched_data\exchange-rates-actual.txt
@@ -9,7 +10,9 @@ set logfile=%repo_folder%\fetched_data\exchange-rates.log
 
 set minbytesize=50
 
-D:\User\wget.exe --no-check-certificate -O %srcfile% "https://api.exchangeratesapi.io/api/latest?base=HUF&symbols=EUR,USD,GBP"
+rem D:\User\wget.exe --no-check-certificate -O %srcfile% "https://api.exchangeratesapi.io/api/latest?base=HUF&symbols=EUR,USD,GBP"
+D:\User\wget.exe --no-check-certificate -O %srcfile% "http://api.currencylayer.com/live?access_key=%currencylayertoken%&currencies=HUF,EUR,GBP"
+
 
 time /t>>%logfile%
 
