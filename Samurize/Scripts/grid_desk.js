@@ -283,6 +283,10 @@ function samurizeGetSunset() {
 	return getSunset();
 }
 
+function samurizeGetNextSunEvent() {
+	return getNextSunEvent();
+}
+
 
 ////////////////////
 // EXCHANGE RATES //
@@ -985,6 +989,40 @@ function getSunset() {
 	//hour=Math.floor(inmins/60) + utc_correction;
 	//min=inmins%60;
 	//return convertTo12Hr(hour,min);
+}
+
+function getNextSunEvent() {
+	var utcCorrectionMins = utc_correction * 60;
+	var sunriseMins = Math.floor(calcSunriseUTC(JD, latitude, longitude)) + utcCorrectionMins;
+	var sunsetMins = Math.floor(calcSunsetUTC(JD, latitude, longitude)) + utcCorrectionMins;
+
+	function getDiffStr(diff) {
+		var dhour = Math.floor(diff / 60);
+		var dminute = Math.round(Math.abs(diff) % 60);
+		if (dminute < 10) {
+			dminute = "0" + dminute;
+		}
+
+		return String(dhour) + ":" + String(dminute);
+	}
+
+	function getTimeStr(inMins) {
+		var hour = Math.floor(inMins / 60);
+		var min = inMins % 60;
+
+		return convertTo12Hr(hour, min);
+	}
+
+	if (sunriseMins > ndminuteoftoday) {
+		// before sunrise (night)
+		return "Sunrise in " + getDiffStr(sunriseMins - ndminuteoftoday) + " at " + getTimeStr(sunriseMins) + "";
+	} else if (sunsetMins > ndminuteoftoday) {
+		// before sunset (day)
+		return "Sunset in " + getDiffStr(sunsetMins - ndminuteoftoday) + " at " + getTimeStr(sunsetMins) + "";
+	} else {
+		// after sunset (night)
+		return "Sunrise in " + getDiffStr((sunriseMins + 24 * 60) - ndminuteoftoday) + " at " + getTimeStr(sunriseMins) + "";
+	}
 }
 
 function convertTo12Hr(hour, min) {
