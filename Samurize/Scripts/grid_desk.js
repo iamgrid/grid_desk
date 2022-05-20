@@ -351,6 +351,17 @@ function toDateObject(raw) {
 	return dobj;
 }
 
+function toDateObjectWithTime(raw) {
+	var dobj = new Date(
+		Number(raw.substr(0, 4)),
+		Number(raw.substr(5, 2)) - 1,
+		Number(raw.substr(8, 2)),
+		Number(raw.substr(11, 2)),
+		Number(raw.substr(14, 2))
+	);
+	return dobj;
+}
+
 function dateDifference(compareWith, format) {
 	var twelveAMToday = new Date();
 	twelveAMToday.setHours(0, 0, 0, 0);
@@ -501,6 +512,7 @@ function weatherGetDesc(dayNo, tooltipMode, layer) {
 	var debug = [];
 	var dayId = dayNoToId(dayNo, "noon");
 	var dobj = toDateObject(weatherdata.list[dayId].dt_txt);
+	var idToGetWindPressureEtcDataFrom = dayId;
 
 	if (!layer) layer = 0;
 
@@ -519,22 +531,44 @@ function weatherGetDesc(dayNo, tooltipMode, layer) {
 
 	if (tooltipMode) reply.push("-----\n");
 
-	var dayStart, dayEnd;
+	var displayRangeStart, displayRangeEnd;
 
 	if (dayNo == 0) {
-		dayStart = 0;
-		dayEnd = dayNoToId(1, "12am") - 1;
+		displayRangeStart = 0;
+		displayRangeEnd = dayNoToId(1, "12am") - 1;
 	} else {
-		dayStart = dayNoToId(dayNo, "12am");
-		dayEnd = dayStart + 7;
+		displayRangeStart = dayNoToId(dayNo, "12am");
+		displayRangeEnd = displayRangeStart + 7;
 	}
 
 	if (!tooltipMode) {
 		// we show the next 24 hours
-		dayStart = 0;
-		dayEnd = 7;
-		// ... and the current windspeed, pressure and humidity
-		dayId = 0;
+
+		var itemZeroRawStr = weatherdata.list[0].dt_txt;
+		// debug.push(itemZeroRawStr);
+		var itemZeroDateObj = toDateObjectWithTime(itemZeroRawStr);
+		// debug.push(itemZeroDateObj.toString());
+		var itemZeroTS = itemZeroDateObj.getTime();
+		var timeDiffInHours = (NOW_TIMESTAMP - itemZeroTS) / 3600000;
+		// debug.push("timeDiffInHours: "+timeDiffInHours);
+
+		if (timeDiffInHours < 0) {
+			displayRangeStart = 0;
+		} else {
+			displayRangeStart = Math.floor(timeDiffInHours / 3);
+		}
+		// debug.push("displayRangeStart: "+displayRangeStart);
+
+		displayRangeEnd = displayRangeStart + 7;
+
+		if (typeof weatherdata.list[displayRangeEnd] === "undefined") {
+			if (layer === 3) {
+				return "Stored weather data ends before the searched for period.";
+			}
+			return "";
+		}
+
+		idToGetWindPressureEtcDataFrom = displayRangeStart;
 	}
 
 	var rain = 0;
@@ -544,17 +578,17 @@ function weatherGetDesc(dayNo, tooltipMode, layer) {
 	var prevDesc = "";
 	var currentDesc = "";
 
-	for (var d=dayStart; d<=dayEnd; d++){
+	for (var d=displayRangeStart; d<=displayRangeEnd; d++){
 		var itemTime = weatherdata.list[d].dt_txt.substr(11,5);
 		
-		if (d > dayStart && itemTime === "00:00") {
+		if (d > displayRangeStart && itemTime === "00:00") {
 			reply.push("-----\n");
 			layers[4].push("-----\n");
 			layers[1].push("\n");
 			layers[2].push("\n");
 			layers[3].push("\n");
 		}
-		// if (d > dayStart && itemTime === "00:00") reply.push("\n");
+		// if (d > displayRangeStart && itemTime === "00:00") reply.push("\n");
 		
 		if (weatherdata.list[d].rain !== undefined) {
 			if (weatherdata.list[d].rain["3h"] > 0){
@@ -610,7 +644,11 @@ function weatherGetDesc(dayNo, tooltipMode, layer) {
 	if (tooltipMode) reply.push("-----\n");
 
 	var precData = [];
-	precData.push("Precipitation: ");
+	if (tooltipMode) {
+		precData.push("Precipitation: ");
+	} else {
+		precData.push("Precip. (24hr): ");
+	}
 	if (rainTotal == 0) {
 		precData.push("-");
 	} else {
@@ -631,18 +669,18 @@ function weatherGetDesc(dayNo, tooltipMode, layer) {
 
 	var windData = [];
 	windData.push("Wind: ");
-	if (weatherdata.list[dayId].wind.speed == 0) {
+	if (weatherdata.list[idToGetWindPressureEtcDataFrom].wind.speed == 0) {
 		windData.push("-");
 	} else {
 		windData.push(
-			Math.round(Number(weatherdata.list[dayId].wind.speed) * 3.6) + " km/h"
+			Math.round(Number(weatherdata.list[idToGetWindPressureEtcDataFrom].wind.speed) * 3.6) + " km/h"
 		);
 		windData.push(
 			" " +
 				char_middot +
 				" dir.: " +
 				windDirection(
-					Number(weatherdata.list[dayId].wind.deg)
+					Number(weatherdata.list[idToGetWindPressureEtcDataFrom].wind.deg)
 				)
 		);
 	}
@@ -651,13 +689,13 @@ function weatherGetDesc(dayNo, tooltipMode, layer) {
 	layers[5].push(windData.join(""));
 
 	if (tooltipMode) reply.push("-----");
-	if (tooltipMode || ((dayEnd - dayStart) < 7)) {
+	if (tooltipMode || ((displayRangeEnd - displayRangeStart) < 7)) {
 		reply.push("\n");
 		layers[5].push("\n");
 	}
 
 	var pressureTx = "Pressure: " +
-			Math.round(weatherdata.list[dayId].main.grnd_level) + " hPa";
+			Math.round(weatherdata.list[idToGetWindPressureEtcDataFrom].main.grnd_level) + " hPa";
 	reply.push(pressureTx);
 	layers[5].push(pressureTx);
 
@@ -669,7 +707,7 @@ function weatherGetDesc(dayNo, tooltipMode, layer) {
 		layers[5].push(" " + char_middot + " ");
 	}
 
-	var humidityTx = "Humidity: " + weatherdata.list[dayId].main.humidity + "%\n";
+	var humidityTx = "Humidity: " + weatherdata.list[idToGetWindPressureEtcDataFrom].main.humidity + "%\n";
 	reply.push(humidityTx);
 	layers[5].push(humidityTx);
 
@@ -692,10 +730,17 @@ function weatherGetDesc(dayNo, tooltipMode, layer) {
 
 	var re = "";
 
-	if (layer == 0) {
-		re = reply;
+	if (debug.length === 0) {
+		if (layer == 0) {
+			re = reply;
+		} else {
+			re = layers[layer];
+		}
 	} else {
-		re = layers[layer];
+		if (layer == 0 || layer == 3) {
+			return debug.join("\n");
+		}
+		return "";
 	}
 
 	return re.join("").replace(/-----/g, dots.join(""));
