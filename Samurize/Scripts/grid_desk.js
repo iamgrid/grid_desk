@@ -1,6 +1,12 @@
 // WARNING: DO NOT EDIT THIS WITH VSCODE, IT WILL SCREW UP THE ENCODING!!!!
 // THE CORRECT ENCODING FOR THIS FILE IS: "Western (Windows 1252)"
 
+var char_degrees = "°";
+var char_middot = "·";
+var char_rain = "•";
+var char_snow = "¤";
+var char_daypointer = "»";
+var currencySymbols = {	"EUR": "€", "GBP": "£", "USD": "$" };
 
 //////////////
 // SETTINGS //
@@ -93,7 +99,7 @@ var NOW_OBJ = new Date();
 var NOW_TIMESTAMP = NOW_OBJ.getTime();
 var ONE_DAY = 24 * 60 * 60 * 1000;
 
-var MONTHS = [
+var MONTHS_THREE_LETTER = [
 	"Jan",
 	"Feb",
 	"Mar",
@@ -107,8 +113,23 @@ var MONTHS = [
 	"Nov",
 	"Dec"
 ];
+var MONTHS_FULL = [
+	"January",
+	"February",
+	"March",
+	"April",
+	"May",
+	"June",
+	"July",
+	"August",
+	"Septempber",
+	"October",
+	"November",
+	"December"
+];
 var WEEKDAYS_ONE_LETTER = ["", "M", "T", "W", "T", "F", ""];
 var WEEKDAYS_THREE_LETTER = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+var WEEKDAYS_FULL = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 
 //////////////////////
@@ -297,18 +318,16 @@ function exchangeRates(req) {
 	var re = [];
 
 	if (req !== "details") {
-		var symbols = {	"EUR": "€", "GBP": "£", "USD": "$" };
-
 		var uSDInHUF = xRData.quotes["USDHUF"];
 		var responseValue = uSDInHUF;
 		if (req !== "USD") {
 			responseValue = responseValue * (1 / xRData.quotes["USD"+req]);
 		}
 		
-		re.push(symbols[req] + ": " + Math.round(responseValue));
+		re.push(currencySymbols[req] + ": " + Math.round(responseValue));
 	} else {
 		var dobj = new Date(xRData.timestamp * 1000);
-		re.push("Base currency: HUF\nJSON date: " + MONTHS[dobj.getMonth()] + " " + dobj.getDate() + ", " + dobj.getFullYear());
+		re.push("Base currency: HUF\nJSON date: " + MONTHS_THREE_LETTER[dobj.getMonth()] + " " + dobj.getDate() + ", " + dobj.getFullYear());
 	}
 
 	return re.join("");
@@ -318,11 +337,6 @@ function exchangeRates(req) {
 /////////////
 // WEATHER //
 /////////////
-
-var char_degrees = "°";
-var char_middot = "·";
-var char_rain = "•";
-var char_snow = "¤";
 
 function weatherGetLoc() {
 	var lat = latitude;
@@ -519,13 +533,10 @@ function weatherGetDesc(dayNo, tooltipMode, layer) {
 	var layers = {1: [], 2: [], 3: [], 4: [], 5: []};
 
 	if (tooltipMode) {
+		var dayName = WEEKDAYS_FULL[dobj.getDay()];
+		var monthName = MONTHS_FULL[dobj.getMonth()];
 		reply.push(
-			dobj.toLocaleDateString("en-US", {
-				weekday: "long",
-				year: "numeric",
-				month: "long",
-				day: "numeric"
-			}) + "\n"
+			dayName + ", " + monthName + " " + dobj.getDate() + ", " + dobj.getFullYear() + "\n"
 		);	
 	}
 
@@ -799,8 +810,8 @@ function dateform(input) {
 	var year = darray[2];
 	var month;
 
-	for (i = 0; i < MONTHS.length; i++) {
-		if (MONTHS[i].toUpperCase() == monthlit) month = i;
+	for (i = 0; i < MONTHS_THREE_LETTER.length; i++) {
+		if (MONTHS_THREE_LETTER[i].toUpperCase() == monthlit) month = i;
 	}
 	var tmpdate = new Date();
 	tmpdate.setFullYear(year, month, day);
@@ -812,11 +823,9 @@ function dateform(input) {
 	}
 }
 
-var char_daypointer = "»";
-
 function calendar(req) {
 	var cal_1 =
-		MONTHS[NOW_OBJ.getMonth()].toUpperCase() +
+		MONTHS_THREE_LETTER[NOW_OBJ.getMonth()].toUpperCase() +
 		"\n" +
 		char_daypointer +
 		"   ";
@@ -860,7 +869,7 @@ function calendar(req) {
 
 		// start of a month
 		if (tday == 1 && i != 0) {
-			cal_1 += "\n" + MONTHS[td.getMonth()].toUpperCase() + "\n";
+			cal_1 += "\n" + MONTHS_THREE_LETTER[td.getMonth()].toUpperCase() + "\n";
 			cal_2 += "\n\n";
 			// cal_3 += "\n\n";
 			// cal_4 += "\n\n";
