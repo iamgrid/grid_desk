@@ -317,6 +317,14 @@ function exchangeRates(req) {
 	var xRData = exchangeratesdata;
 	var re = [];
 
+	if ("error" in xRData) {
+		if (req !== "details") {
+			return "";
+		} else {
+			return "The endpoint returned with the following error: " + xRData.error.info + " (" + xRData.error.code + ")";
+		}
+	}
+
 	if (req !== "details") {
 		var uSDInHUF = xRData.quotes["USDHUF"];
 		var responseValue = uSDInHUF;
