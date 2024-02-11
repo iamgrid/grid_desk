@@ -308,6 +308,9 @@ function samurizeGetNextSunEvent() {
 	return getNextSunEvent();
 }
 
+function samurizeSunriseSunsetHoverInfo() {
+	return sunriseSunsetHoverInfo();
+}
 
 ////////////////////
 // EXCHANGE RATES //
@@ -1019,9 +1022,11 @@ function gettasks() {
 var thisyear = NOW_OBJ.getFullYear();
 var thismonth = NOW_OBJ.getMonth() + 1;
 var thisday = NOW_OBJ.getDate();
+var tomorrow =  NOW_OBJ.getDate() + 1;
 var ndminuteoftoday = NOW_OBJ.getHours() * 60 + NOW_OBJ.getMinutes();
 
 var JD = calcJD(thisyear, thismonth, thisday);
+var JDTomorrow = calcJD(thisyear, thismonth, tomorrow);
 
 function formatSsSr(inmins, showrelative) {
 	diff = inmins + utc_correction * 60 - ndminuteoftoday;
@@ -1044,13 +1049,21 @@ function formatSsSr(inmins, showrelative) {
 	return phrase;
 }
 
-function getSunrise() {
-	inmins = Math.floor(calcSunriseUTC(JD, latitude, longitude));
+function getSunrise(tomorrow) {
+	var chosedJD = JD;
+	if (tomorrow) {
+		chosedJD = JDTomorrow;
+	}
+	var inmins = Math.floor(calcSunriseUTC(chosedJD, latitude, longitude));
 	return formatSsSr(inmins, true);
 }
 
-function getSunset() {
-	inmins = Math.floor(calcSunsetUTC(JD, latitude, longitude));
+function getSunset(tomorrow) {
+	var chosedJD = JD;
+	if (tomorrow) {
+		chosedJD = JDTomorrow;
+	}
+	var inmins = Math.floor(calcSunsetUTC(chosedJD, latitude, longitude));
 	return formatSsSr(inmins, false);
 
 	//hour=Math.floor(inmins/60) + utc_correction;
@@ -1060,8 +1073,9 @@ function getSunset() {
 
 function getNextSunEvent() {
 	var utcCorrectionMins = utc_correction * 60;
-	var sunriseMins = Math.floor(calcSunriseUTC(JD, latitude, longitude)) + utcCorrectionMins;
-	var sunsetMins = Math.floor(calcSunsetUTC(JD, latitude, longitude)) + utcCorrectionMins;
+	var sunriseTodayMins = Math.floor(calcSunriseUTC(JD, latitude, longitude)) + utcCorrectionMins;
+	var sunsetTodayMins = Math.floor(calcSunsetUTC(JD, latitude, longitude)) + utcCorrectionMins;
+	var sunriseTomorrowMins = Math.floor(calcSunriseUTC(JDTomorrow, latitude, longitude)) + utcCorrectionMins;
 
 	function getDiffStr(diff) {
 		var dhour = Math.floor(diff / 60);
@@ -1080,16 +1094,26 @@ function getNextSunEvent() {
 		return convertTo12Hr(hour, min);
 	}
 
-	if (sunriseMins > ndminuteoftoday) {
+	if (sunriseTodayMins > ndminuteoftoday) {
 		// before sunrise (night)
-		return "Sunrise in " + getDiffStr(sunriseMins - ndminuteoftoday) + " at " + getTimeStr(sunriseMins) + "";
-	} else if (sunsetMins > ndminuteoftoday) {
+		return "Sunrise in " + getDiffStr(sunriseTodayMins - ndminuteoftoday) + " at " + getTimeStr(sunriseTodayMins) + "";
+	} else if (sunsetTodayMins > ndminuteoftoday) {
 		// before sunset (day)
-		return "Sunset in " + getDiffStr(sunsetMins - ndminuteoftoday) + " at " + getTimeStr(sunsetMins) + "";
+		return "Sunset in " + getDiffStr(sunsetTodayMins - ndminuteoftoday) + " at " + getTimeStr(sunsetTodayMins) + "";
 	} else {
 		// after sunset (night)
-		return "Sunrise in " + getDiffStr((sunriseMins + 24 * 60) - ndminuteoftoday) + " at " + getTimeStr(sunriseMins) + "";
+		nextSunEventIsTomorrow = true;
+		return "Sunrise in " + getDiffStr((sunriseTomorrowMins + 24 * 60) - ndminuteoftoday) + " at " + getTimeStr(sunriseTomorrowMins) + "";
 	}
+}
+
+function sunriseSunsetHoverInfo() {
+	var sunriseToday = getSunrise(false);
+	var sunsetToday = getSunset(false);
+	var sunriseTomorrow = getSunrise(true);
+	var sunsetTomorrow = getSunset(true);
+
+	return "Sunrise today: " + sunriseToday + "\nSunset today: " + sunsetToday + "\nSunrise tomorrow: " + sunriseTomorrow + "\nSunset tomorrow: " + sunsetTomorrow;
 }
 
 function convertTo12Hr(hour, min) {
