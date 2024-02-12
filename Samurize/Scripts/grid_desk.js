@@ -1055,7 +1055,7 @@ function getSunrise(tomorrow) {
 		chosedJD = JDTomorrow;
 	}
 	var inmins = Math.floor(calcSunriseUTC(chosedJD, latitude, longitude));
-	return formatSsSr(inmins, true);
+	return formatSsSr(inmins, false);
 }
 
 function getSunset(tomorrow) {
@@ -1102,7 +1102,6 @@ function getNextSunEvent() {
 		return "Sunset in " + getDiffStr(sunsetTodayMins - ndminuteoftoday) + " at " + getTimeStr(sunsetTodayMins) + "";
 	} else {
 		// after sunset (night)
-		nextSunEventIsTomorrow = true;
 		return "Sunrise in " + getDiffStr((sunriseTomorrowMins + 24 * 60) - ndminuteoftoday) + " at " + getTimeStr(sunriseTomorrowMins) + "";
 	}
 }
